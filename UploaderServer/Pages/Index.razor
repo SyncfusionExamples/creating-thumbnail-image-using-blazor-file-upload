@@ -1,0 +1,42 @@
+﻿@page "/"
+
+@using Syncfusion.Blazor.Inputs;
+@using System.Drawing;
+@using System.IO;
+
+
+<span>uploader component </span>
+<SfUploader AutoUpload="false" AllowedExtensions=".png, .jpg, .jpeg" MaxFileSize="2000000">
+    <UploaderEvents ValueChange="OnChange"></UploaderEvents>
+</SfUploader>
+
+@code {
+
+
+    private async void OnChange(UploadChangeEventArgs args)
+    {
+        foreach (var file in args.Files)
+        {
+            // This line creates a file path using the name of the file
+            var path = Path.Combine(
+                      Directory.GetCurrentDirectory(),
+                              "wwwroot", file.FileInfo.Name);
+            // Create a MemoryStream to write the file to memory
+            MemoryStream memoryStream = new MemoryStream();
+
+            // Reset the position of the memory stream to the beginning
+            memoryStream.Position = 0;
+            // Calls the OpenReadStream method on the uploaded file to get a read stream            
+            await file.File.OpenReadStream(long.MaxValue).CopyToAsync(memoryStream);
+
+            var image = Image.FromStream(memoryStream);
+
+            // Calculate the new width and height of the thumbnail
+            int thumbnailWidth = 100;
+            int thumbnailHeight = 100;
+
+            var thumbnail = image.GetThumbnailImage(thumbnailWidth, thumbnailHeight, null, IntPtr.Zero);
+            thumbnail.Save(path, image.RawFormat);
+        }
+    }
+}
